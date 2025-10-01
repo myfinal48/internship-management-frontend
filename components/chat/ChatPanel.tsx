@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { ChatParticipant } from '@/types/chat-v2';
 import { useChatStoreV2 } from '@/stores/chatStoreV2';
+import { useToast } from '@/hooks/use-toast';
 import { ParticipantList } from './ParticipantList';
 import { ConversationView } from './ConversationView';
 import ChatConversationSkeleton from './ChatConversationSkeleton';
@@ -17,6 +18,7 @@ const ChatPanel = ({ className }: ChatPanelProps) => {
   const setChatOpen = useChatStoreV2((s) => s.setChatOpen);
   const activeConversationId = useChatStoreV2((s) => s.activeConversationId);
   const markAsRead = useChatStoreV2((s) => s.markAsRead);
+  const { toast } = useToast();
   const [view, setView] = useState<'participants' | 'conversation'>('participants');
   const [selectedParticipant, setSelectedParticipant] = useState<ChatParticipant | null>(null);
   const [isLoadingConv, setIsLoadingConv] = useState(false);
@@ -43,7 +45,13 @@ const ChatPanel = ({ className }: ChatPanelProps) => {
       await store.getOrCreateConversation(participant.id);
       setView('conversation');
     } catch (e) {
+      console.error('Failed to load conversation:', e);
       setView('participants');
+      toast({
+        title: 'Failed to load conversation',
+        description: 'Unable to start a conversation. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoadingConv(false);
     }

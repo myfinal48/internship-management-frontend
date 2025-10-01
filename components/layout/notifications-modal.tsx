@@ -5,11 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotificationStore } from "@/stores/notificationStore";
 import { NotificationDTO } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Archive } from "lucide-react";
+import { Archive, ArchiveX } from "lucide-react";
+import { useEffect } from "react";
+import { notificationWebSocket } from "@/lib/notification-websocket";
 
 interface NotificationsModalProps {
   open: boolean;
@@ -18,20 +20,42 @@ interface NotificationsModalProps {
 }
 
 export function NotificationsModal({ open, onOpenChange, userId }: NotificationsModalProps) {
-  const unreadNotifications = useNotifications({ 
-    userId, 
-    status: "UNREAD"
-  });
-  
-  const archivedNotifications = useNotifications({ 
-    userId, 
-    status: "ARCHIVED"
-  });
-  
-  const { archiveNotification } = useNotifications({ userId });
+  const {
+    unreadNotifications,
+    archivedNotifications,
+    loading,
+    fetchUserNotifications,
+    archiveNotification,
+    archiveAllUnread
+  } = useNotificationStore();
+
+  // Connect WebSocket on component mount
+  useEffect(() => {
+    if (userId) {
+      notificationWebSocket.connect(userId);
+      fetchUserNotifications(userId, 'UNREAD');
+      fetchUserNotifications(userId, 'ARCHIVED');
+    }
+    
+    return () => {
+      // Keep connection alive - don't disconnect on unmount
+    };
+  }, [userId, fetchUserNotifications]);
+
+  // Refresh data when modal opens
+  useEffect(() => {
+    if (open && userId) {
+      fetchUserNotifications(userId, 'UNREAD');
+      fetchUserNotifications(userId, 'ARCHIVED');
+    }
+  }, [open, userId, fetchUserNotifications]);
 
   const handleArchive = (notificationId: number) => {
-    archiveNotification.mutate({ notificationId, userId });
+    archiveNotification(notificationId, userId);
+  };
+
+  const handleArchiveAll = () => {
+    archiveAllUnread(userId);
   };
 
   const NotificationItem = ({ notification, showArchive = false }: { notification: NotificationDTO; showArchive?: boolean }) => (
@@ -57,7 +81,7 @@ export function NotificationsModal({ open, onOpenChange, userId }: Notifications
             variant="ghost"
             size="sm"
             onClick={() => handleArchive(notification.id)}
-            disabled={archiveNotification.isPending}
+            disabled={loading}
           >
             <Archive className="h-4 w-4" />
           </Button>
@@ -76,25 +100,38 @@ export function NotificationsModal({ open, onOpenChange, userId }: Notifications
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="active">
-              Actives ({unreadNotifications.notificationByStatus.data?.length || 0})
+              Actives ({unreadNotifications.length})
             </TabsTrigger>
             <TabsTrigger value="archived">
-              Lues ({archivedNotifications.notificationByStatus.data?.length || 0})
+              Archivées ({archivedNotifications.length})
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="active" className="mt-4">
+            {unreadNotifications.length > 0 && (
+              <div className="flex justify-end mb-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleArchiveAll}
+                  disabled={loading}
+                >
+                  <ArchiveX className="h-4 w-4 mr-2" />
+                  Archiver tout
+                </Button>
+              </div>
+            )}
             <ScrollArea className="h-[400px]">
-              {unreadNotifications.notificationByStatus.isLoading ? (
+              {loading ? (
                 <div className="p-4 text-center text-muted-foreground">
                   Chargement...
                 </div>
-              ) : unreadNotifications.notificationByStatus.data?.length === 0 ? (
+              ) : unreadNotifications.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
                   Aucune notification active
                 </div>
               ) : (
-                unreadNotifications.notificationByStatus.data?.map((notification) => (
+                unreadNotifications.map((notification) => (
                   <NotificationItem 
                     key={notification.id} 
                     notification={notification} 
@@ -107,16 +144,16 @@ export function NotificationsModal({ open, onOpenChange, userId }: Notifications
           
           <TabsContent value="archived" className="mt-4">
             <ScrollArea className="h-[400px]">
-              {archivedNotifications.notificationByStatus.isLoading ? (
+              {loading ? (
                 <div className="p-4 text-center text-muted-foreground">
                   Chargement...
                 </div>
-              ) : archivedNotifications.notificationByStatus.data?.length === 0 ? (
+              ) : archivedNotifications.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
                   Aucune notification archivée
                 </div>
               ) : (
-                archivedNotifications.notificationByStatus.data?.map((notification) => (
+                archivedNotifications.map((notification) => (
                   <NotificationItem 
                     key={notification.id} 
                     notification={notification} 

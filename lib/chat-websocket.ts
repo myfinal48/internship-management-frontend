@@ -27,17 +27,17 @@ export type DeleteHandler = (notification: DeleteNotification) => void;
  */
 export class ChatWebSocketService {
   private client: Client | null = null;
-  private config: ChatConfig;
-  private subscriptions: Map<string, StompSubscription> = new Map();
+  private readonly config: ChatConfig;
+  private readonly subscriptions: Map<string, StompSubscription> = new Map();
   private reconnectAttempts = 0;
   private isConnected = false;
   
   // Event handlers
-  private messageHandlers: Set<MessageHandler> = new Set();
-  private typingHandlers: Set<TypingHandler> = new Set();
-  private presenceHandlers: Set<PresenceHandler> = new Set();
-  private readReceiptHandlers: Set<ReadReceiptHandler> = new Set();
-  private deleteHandlers: Set<DeleteHandler> = new Set();
+  private readonly messageHandlers: Set<MessageHandler> = new Set();
+  private readonly typingHandlers: Set<TypingHandler> = new Set();
+  private readonly presenceHandlers: Set<PresenceHandler> = new Set();
+  private readonly readReceiptHandlers: Set<ReadReceiptHandler> = new Set();
+  private readonly deleteHandlers: Set<DeleteHandler> = new Set();
   
   constructor(config: ChatConfig) {
     this.config = config;
@@ -198,7 +198,7 @@ export class ChatWebSocketService {
   /**
    * Send a message via WebSocket
    */
-  send(destination: string, body: any): void {
+  send(destination: string, body: unknown): void {
     if (!this.client?.active) {
       console.error('WebSocket is not connected');
       return;

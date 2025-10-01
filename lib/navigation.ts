@@ -7,7 +7,6 @@ import {
   LucideListChecks,
   Briefcase,
   UserRoundPen,
-  MessageCircle,
 } from "lucide-react"
 
 export interface NavigationItem {

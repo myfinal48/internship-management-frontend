@@ -15,16 +15,15 @@ import {
   useChat,
   useActiveConversation,
   useTypingUsers,
-  useConversation
 } from '@/hooks/useChatV2';
 import { useChatStoreV2 } from '@/stores/chatStoreV2';
-import { ChatParticipant, SendMessageRequest, UpdateMessageRequest, ChatMessage, TypingIndicator } from '@/types/chat-v2';
+import { ChatParticipant, SendMessageRequest, ChatMessage, TypingIndicator } from '@/types/chat-v2';
 import { useToast } from '@/hooks/use-toast';
 
 interface ChatModuleProps {
-  className?: string;
-  defaultView?: 'list' | 'conversation';
-  compactMode?: boolean;
+  readonly className?: string;
+  readonly defaultView?: 'list' | 'conversation';
+  readonly compactMode?: boolean;
 }
 
 export function ChatModule({ 
@@ -38,7 +37,6 @@ export function ChatModule({
     conversations,
     messages,
     isLoading,
-    isSending,
     error,
     sendMessage,
     updateMessage,
@@ -73,9 +71,10 @@ export function ChatModule({
       await store.getOrCreateConversation(participant.id);
       setMobileView('conversation');
     } catch (err) {
+      console.error("Failed to create conversation:", err);
       toast({
         title: "Erreur",
-        description: "Impossible de créer la conversation",
+        description: err instanceof Error ? err.message : "Impossible de créer la conversation",
         variant: "destructive",
       });
     }
@@ -121,9 +120,10 @@ export function ChatModule({
         description: "Le message a été supprimé avec succès",
       });
     } catch (err) {
+      console.error("Failed to delete message:", err);
       toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le message",
+        title: `Erreur`,
+        description: err instanceof Error ? err.message : "Impossible de supprimer le message",
         variant: "destructive",
       });
     }

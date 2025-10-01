@@ -3,11 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { MessageCircle, X, Minimize2, Maximize2 } from 'lucide-react';
 import { ChatModule } from './ChatModule';
@@ -16,9 +11,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useChatStoreV2 } from '@/stores/chatStoreV2';
 
 interface ChatWidgetProps {
-  position?: 'bottom-right' | 'bottom-left';
-  defaultOpen?: boolean;
-  className?: string;
+  readonly position?: 'bottom-right' | 'bottom-left';
+  readonly defaultOpen?: boolean;
+  readonly className?: string;
 }
 
 export function ChatWidget({ 

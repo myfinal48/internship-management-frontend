@@ -94,7 +94,7 @@ export function ChatHeader({
             <p className="text-xs text-muted-foreground">
               {isTyping ? (
                 <span className="flex items-center gap-1">
-                  <span className="animate-pulse">En train d'écrire</span>
+                  <span className="animate-pulse">{"En train d'écrire"}</span>
                   <span className="flex gap-0.5">
                     <span className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />

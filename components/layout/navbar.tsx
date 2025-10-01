@@ -9,8 +9,8 @@ import { UserNav } from "@/components/layout";
 import { NotificationsModal } from "@/components/layout/notifications-modal";
 import type { AuthSession } from "@/types/next-auth";
 import { ModeToggle, Logo } from "@/components/global";
-import { useNotifications } from "@/hooks/useNotifications";
-import { useWebSocket } from "@/contexts/WebSocketContext";
+import { useNotificationStore } from "@/stores/notificationStore";
+import { notificationWebSocket } from "@/lib/notification-websocket";
 import { useState, useEffect } from "react";
 import { ChatButton } from "@/components/chat";
 
@@ -26,26 +26,18 @@ export function Navbar({ session }: Readonly<NavbarProps>) {
 
   const showChatButton = userRole === 'STUDENT' || userRole === 'COMPANY';
 
-  const { notificationByStatus, refetchNotifications } = useNotifications({
-    userId,
-    status: "UNREAD",
-  });
+  // Use the notification store for real-time updates
+  const { unreadNotifications, fetchUserNotifications } = useNotificationStore();
 
-  const { connectWebSocket, registerRefreshCallback, unregisterRefreshCallback } = useWebSocket();
-
+  // Connect WebSocket and fetch initial notifications
   useEffect(() => {
-    if (userIdStr) {
-      connectWebSocket(userIdStr);
-      registerRefreshCallback(() => {
-        refetchNotifications();
-      });
+    if (userId) {
+      notificationWebSocket.connect(userId);
+      fetchUserNotifications(userId, 'UNREAD');
     }
-    return () => {
-      unregisterRefreshCallback();
-    };
-  }, [userIdStr, connectWebSocket, registerRefreshCallback, unregisterRefreshCallback, refetchNotifications]);
+  }, [userId, fetchUserNotifications]);
 
-  const unreadCount = notificationByStatus.data?.length || 0;
+  const unreadCount = unreadNotifications.length;
 
   return (
     <>

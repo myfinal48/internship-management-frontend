@@ -94,6 +94,13 @@ async function deleteUserNotification(
 ): Promise<void> {
   await apiClient.delete(`${BASE_URL}/${notificationId}/users/${userId}`);
 }
+
+async function archiveAllUnread(
+  archiveAllUnreadDTO: { userId: number; notificationIds?: number[] }
+): Promise<void> {
+  await apiClient.patch(`${BASE_URL}/archive-all-unread`, archiveAllUnreadDTO);
+}
+
 export const notificationService = {
   fetchAllNotifications,
   fetchUserNotifications,
@@ -102,6 +109,7 @@ export const notificationService = {
   createAndPostNotification,
   markNotificationsAsRead,
   archiveNotification,
+  archiveAllUnread,
   updateNotification,
   deleteNotification,
   deleteUserNotification,
